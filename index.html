@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Fotoselectie</title>
+<style>
+:root{--bg:#f6f4f0;--card:#fff;--ink:#2b2a28;--muted:#77736c;--line:#e2ddd4;--ja:#2f7d4f;--tw:#b7862a;--nee:#a44a3f;--accent:#4a5a6a}
+@media (prefers-color-scheme: dark){:root{--bg:#1c1b1a;--card:#262523;--ink:#ece8e1;--muted:#a19c93;--line:#3a3835;--ja:#5fb07f;--tw:#d8a948;--nee:#d27a6e;--accent:#9fb3c8}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "Segoe UI",system-ui,sans-serif}
+h1{font-weight:500;font-size:22px;margin:0}
+a{color:var(--accent)}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 12px}
+button:hover{border-color:var(--accent)}
+button.primair{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+button.klein{padding:2px 8px;font-size:12px}
+select,input{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 8px;max-width:100%}
+.verborgen{display:none!important}
+#start{max-width:560px;margin:6vh auto;padding:0 16px}
+#start p{color:var(--muted)}
+.namen{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.namen button.actief{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.stap{margin:28px 0}
+.stap h2{font-size:16px;font-weight:600;margin:0 0 6px}
+.bron{margin:12px 0}
+#melding{color:var(--nee);margin-top:12px}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+header .ruimte{flex:1}
+#status{color:var(--muted);font-size:13px}
+#voortgang{font-size:13px}
+#raster{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;padding:16px}
+.kaart{background:var(--card);border:2px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+.kaart.v-ja{border-color:var(--ja)}.kaart.v-twijfel{border-color:var(--tw)}.kaart.v-nee{border-color:var(--nee);opacity:.6}
+.duim{position:relative;aspect-ratio:4/3;background:var(--line);display:flex;align-items:center;justify-content:center;cursor:zoom-in;color:var(--muted);font-size:12px}
+.duim img{width:100%;height:100%;object-fit:contain;display:block}
+.nieuw{position:absolute;top:6px;left:6px;background:var(--accent);color:var(--bg);font-size:11px;font-weight:600;border-radius:10px;padding:1px 8px}
+.meta{padding:6px 10px 0;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.knoppen{display:flex;gap:6px;padding:8px 10px}
+.knoppen button{flex:1;padding:5px 0;font-size:13px}
+button.s-ja.actief{background:var(--ja);border-color:var(--ja);color:#fff}
+button.s-twijfel.actief{background:var(--tw);border-color:var(--tw);color:#fff}
+button.s-nee.actief{background:var(--nee);border-color:var(--nee);color:#fff}
+.anderen{padding:0 10px 8px;display:flex;flex-wrap:wrap;gap:4px;min-height:4px}
+.chip{font-size:11px;border-radius:10px;padding:1px 7px;color:#fff}
+.chip.ja{background:var(--ja)}.chip.twijfel{background:var(--tw)}.chip.nee{background:var(--nee)}
+#leeg{padding:40px 16px;color:var(--muted);text-align:center}
+#melder{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:9;background:var(--accent);color:var(--bg);border-radius:20px;padding:8px 18px;box-shadow:0 2px 10px rgba(0,0,0,.25);max-width:calc(100% - 32px);text-align:center}
+#lichtbak{position:fixed;inset:0;z-index:10;background:rgba(10,10,10,.94);color:#eee;display:flex;flex-direction:column}
+#lichtbak .beeld{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;position:relative}
+#lichtbak img{max-width:100%;max-height:100%;object-fit:contain}
+#lichtbak .balk{padding:10px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center}
+#lichtbak .balk button{background:#2a2a2a;border-color:#444;color:#eee;min-width:96px}
+#lichtbak .info{font-size:13px;color:#aaa;text-align:center;padding:0 16px}
+#lichtbak .pijl{position:absolute;top:50%;transform:translateY(-50%);background:rgba(40,40,40,.7);border:0;color:#eee;font-size:28px;padding:10px 16px}
+#lichtbak .links{left:8px}#lichtbak .rechts{right:8px}
+#lichtbak .sluit{position:absolute;top:8px;right:8px;background:rgba(40,40,40,.7);border:0;color:#eee;font-size:18px}
+.toetsen{font-size:12px;color:#888}
+@media (max-width:600px){
+  #raster{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;padding:10px}
+  header{padding:8px 10px;gap:6px 10px}
+  header h1{font-size:17px}
+  header select{flex:1 1 40%}
+  #lichtbak .balk{flex-wrap:nowrap;padding:10px}
+  #lichtbak .balk button{min-width:0;flex:1;padding:10px 0}
+  #lichtbak .pijl,.toetsen{display:none}
+}
+</style>
+</head>
+<body>
+
+<section id="start">
+  <h1>Foto's kiezen</h1>
+  <p>Geef per foto aan of je hem in een fotoshow wilt: <b>ja</b>, <b>twijfel</b> of <b>nee</b>. Je keuzes worden automatisch opgeslagen in de gedeelde Dropbox-map, en je ziet ook wat de anderen hebben gekozen. Nieuwe foto's verschijnen vanzelf.</p>
+
+  <div class="stap" id="stapBron">
+    <h2>1. Verbinden met de foto's</h2>
+    <div class="bron verborgen" id="bronDropbox">
+      <p>Log in met het Dropbox-account waaraan de gedeelde map is toegevoegd. Dit werkt ook op een telefoon.</p>
+      <button id="dbxLogin" class="primair">Inloggen met Dropbox</button>
+      <button id="dbxUit" class="klein verborgen">Uitloggen bij Dropbox</button>
+    </div>
+    <div class="bron verborgen" id="bronMap">
+      <p>Of kies op een computer (Chrome of Edge) de gedeelde map in je Dropbox-map (dezelfde map waar dit bestand staat) en sta toe dat hij wordt <b>bewerkt</b>. Dat is nodig om je keuzes op te slaan; er wordt niets gewist of verplaatst.</p>
+      <button id="verder" class="primair verborgen">Verder met de vorige map</button>
+      <button id="kiesMap">Map kiezen…</button>
+    </div>
+    <div id="nietOndersteund" class="verborgen" style="color:var(--nee)">
+      <p>Zo kan deze browser niet bij de foto's. Open de app via het webadres<span id="webadres"></span>, of open dit bestand in <b>Google Chrome</b> of <b>Microsoft Edge</b> op een computer.</p>
+    </div>
+  </div>
+
+  <div class="stap verborgen" id="stapNaam">
+    <h2>2. Wie ben je?</h2>
+    <div class="namen" id="namen"></div>
+    <input id="andereNaam" placeholder="Andere naam…" style="width:200px">
+    <button id="begin" class="primair">Beginnen</button>
+  </div>
+  <div id="melding"></div>
+</section>
+
+<section id="app" class="verborgen">
+  <header>
+    <h1>Fotoselectie</h1>
+    <span>Ik ben <b id="ikBen"></b> <button id="wissel" class="klein">wissel</button></span>
+    <select id="fMap"></select>
+    <select id="fToon">
+      <option value="alle">Alle foto's</option>
+      <option value="open">Nog niet door mij beoordeeld</option>
+      <option value="nieuw">Nieuwe foto's</option>
+      <option value="ja">Mijn ja</option>
+      <option value="twijfel">Mijn twijfel</option>
+      <option value="nee">Mijn nee</option>
+      <option value="iemandJa">Ja van iemand</option>
+    </select>
+    <select id="fSorteer">
+      <option value="map">Sorteer op map</option>
+      <option value="stemmen">Sorteer op meeste ja</option>
+    </select>
+    <span class="ruimte"></span>
+    <span id="voortgang"></span>
+    <button id="ververs" title="Nu opnieuw kijken naar nieuwe foto's en stemmen (gebeurt ook vanzelf)">Verversen</button>
+    <span id="status"></span>
+  </header>
+  <div id="raster"></div>
+  <div id="leeg" class="verborgen">Geen foto's in deze selectie.</div>
+  <div id="melder" class="verborgen"></div>
+</section>
+
+<section id="lichtbak" class="verborgen">
+  <div class="beeld">
+    <img id="lbImg" alt="">
+    <button class="pijl links" id="lbVorige">‹</button>
+    <button class="pijl rechts" id="lbVolgende">›</button>
+    <button class="sluit" id="lbSluit">✕</button>
+  </div>
+  <div class="info" id="lbInfo"></div>
+  <div class="balk">
+    <button class="s-ja" data-s="ja">Ja (J)</button>
+    <button class="s-twijfel" data-s="twijfel">Twijfel (T)</button>
+    <button class="s-nee" data-s="nee">Nee (N)</button>
+    <span class="toetsen">← → bladeren · Esc sluiten · na een keuze gaat hij door naar de volgende</span>
+  </div>
+</section>
+
+<script>
+// ---------- instellingen ----------
+const DROPBOX_APP_KEY = '';   // "App key" van de Dropbox-app (is niet geheim); leeg = alleen "Map kiezen"
+const WEBADRES = '';          // adres waar de app online staat, voor wie dit bestand op een telefoon opent
+const STEMMAP = 'Selectie_stemmen';
+const AUTO_INTERVAL = 90000;  // zo vaak zoekt de app zelf naar nieuwe foto's en stemmen
+const $ = id => document.getElementById(id);
+
+const st = {
+  naam: null, bron: null,
+  fotos: [],
+  mijn: {},        // key -> {stem, pad, tijd}; stem null = keuze weer weggehaald
+  anderen: {},     // naam -> {key -> {stem, pad, tijd}}
+  namen: [],
+  lijst: [], lbIndex: -1, lbUrl: null,
+  mijnNaam: null,  // naam waar st.mijn bij hoort
+  nieuw: new Set(),// foto's die er bij mijn vorige bezoek nog niet waren
+  bezig: false, wachtend: false,
+};
+
+// ---------- opslag in de browser (alleen gemak, mag mislukken) ----------
+function lsGet(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
+function lsSet(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+function lsDel(k){ try { localStorage.removeItem(k); } catch(e){} }
+function idb(){ return new Promise((ok,nok)=>{ const r=indexedDB.open('fotoselectie_jan',1); r.onupgradeneeded=()=>r.result.createObjectStore('kv'); r.onsuccess=()=>ok(r.result); r.onerror=()=>nok(r.error); }); }
+async function idbGet(k){ try { const db=await idb(); return await new Promise(ok=>{ const r=db.transaction('kv').objectStore('kv').get(k); r.onsuccess=()=>ok(r.result); r.onerror=()=>ok(null); }); } catch(e){ return null; } }
+async function idbSet(k,v){ try { const db=await idb(); db.transaction('kv','readwrite').objectStore('kv').put(v,k); } catch(e){} }
+
+// ---------- bron 1: een map op de computer (File System Access API, Chrome/Edge) ----------
+async function maakDuimVanBestand(file){
+  const bmp=await createImageBitmap(file,{resizeWidth:400,resizeQuality:'medium',imageOrientation:'from-image'});
+  const c=document.createElement('canvas'); c.width=bmp.width; c.height=bmp.height;
+  c.getContext('2d').drawImage(bmp,0,0); bmp.close();
+  const blob=await new Promise(ok=>c.toBlob(ok,'image/jpeg',.8));
+  return URL.createObjectURL(blob);
+}
+function lokaleBron(dir){
+  const beeld=/\.(jpe?g|png|webp|gif)$/i;
+  let stemDir=null;
+  async function scan(dirH,pad,uit){
+    for await (const [n,h] of dirH.entries()){
+      if(h.kind==='directory'){
+        if(n===STEMMAP || n.startsWith('.')) continue;
+        await scan(h, pad? pad+'/'+n : n, uit);
+      } else if(beeld.test(n)){
+        let size=0; try { size=(await h.getFile()).size; } catch(e){}
+        uit.push({key:n+'|'+size, naam:n, map:pad||'(hoofdmap)', pad:(pad?pad+'/':'')+n, ref:h});
+      }
+    }
+  }
+  return {
+    parallel: 4,
+    async open(){
+      let heeftFotos=false;
+      for await (const [n,h] of dir.entries()){ if(h.kind==='directory' && (/^foto/i.test(n) || n===STEMMAP)) heeftFotos=true; }
+      if(!heeftFotos && !confirm('In deze map staan geen mappen "Foto\'s …". Is dit wel de gedeelde map?')) throw new Error('Kies de gedeelde map.');
+      stemDir=await dir.getDirectoryHandle(STEMMAP,{create:true});
+    },
+    async lijst(){ const uit=[]; await scan(dir,'',uit); return uit; },
+    async stemBestanden(){
+      const uit=[];
+      for await (const [n,h] of stemDir.entries()) if(h.kind==='file' && /\.json$/i.test(n)) uit.push({bestand:n, ref:h});
+      return uit;
+    },
+    async lees(s){ return JSON.parse(await (await s.ref.getFile()).text()); },
+    async leesBestand(n){ let h; try { h=await stemDir.getFileHandle(n); } catch(e){ return null; } return JSON.parse(await (await h.getFile()).text()); },
+    async schrijf(n,tekst){ const fh=await stemDir.getFileHandle(n,{create:true}); const w=await fh.createWritable(); await w.write(tekst); await w.close(); },
+    async duim(f){ return maakDuimVanBestand(await f.ref.getFile()); },
+    async groot(f){ return URL.createObjectURL(await f.ref.getFile()); },
+  };
+}
+
+// ---------- bron 2: Dropbox via inloggen (werkt ook op een telefoon) ----------
+const DBX_API='https://api.dropboxapi.com/2/', DBX_INHOUD='https://content.dropboxapi.com/2/';
+function terugAdres(){ return location.origin+location.pathname; }
+function b64url(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+// Dropbox wil in de header alleen ASCII; andere tekens (bijv. é) als \uXXXX
+function kopJson(o){ return JSON.stringify(o).replace(/[\u007f-￿]/g,c=>'\\u'+('000'+c.charCodeAt(0).toString(16)).slice(-4)); }
+function b64blob(s,type){ const bin=atob(s), a=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) a[i]=bin.charCodeAt(i); return new Blob([a],{type}); }
+const wacht=ms=>new Promise(ok=>setTimeout(ok,ms));
+
+async function dbxLogin(){
+  const verifier=b64url(crypto.getRandomValues(new Uint8Array(48)));
+  const challenge=b64url(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier)));
+  const state=b64url(crypto.getRandomValues(new Uint8Array(16)));
+  lsSet('dbx_verifier',verifier); lsSet('dbx_state',state);
+  location.href='https://www.dropbox.com/oauth2/authorize?'+new URLSearchParams({
+    client_id:DROPBOX_APP_KEY, response_type:'code', code_challenge:challenge, code_challenge_method:'S256',
+    redirect_uri:terugAdres(), token_access_type:'offline', state});
+}
+async function dbxTokenAanvraag(params){
+  const r=await fetch('https://api.dropboxapi.com/oauth2/token',{method:'POST',body:new URLSearchParams({...params,client_id:DROPBOX_APP_KEY})});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(j.error_description||j.error||('HTTP '+r.status));
+  return j;
+}
+// na het inloggen stuurt Dropbox terug naar deze pagina met ?code=…
+async function dbxTerugVanLogin(){
+  const p=new URLSearchParams(location.search), code=p.get('code'), fout=p.get('error');
+  if(!code && !fout) return null;
+  history.replaceState(null,'',terugAdres());
+  if(fout) throw new Error(fout==='access_denied' ? 'Inloggen afgebroken.' : (p.get('error_description')||fout));
+  if(p.get('state')!==lsGet('dbx_state')) throw new Error('Inloggen niet herkend. Probeer het opnieuw.');
+  const j=await dbxTokenAanvraag({code, grant_type:'authorization_code', code_verifier:lsGet('dbx_verifier'), redirect_uri:terugAdres()});
+  lsDel('dbx_verifier'); lsDel('dbx_state');
+  if(j.refresh_token) lsSet('dbx_refresh',j.refresh_token);
+  return {token:j.access_token, tot:Date.now()+(j.expires_in||14400)*1000};
+}
+
+function dropboxBron(sessie){
+  const beeld=/\.(jpe?g|png|webp|gif|heic|heif|tiff?|bmp)$/i;
+  let tok=sessie&&sessie.token, tot=sessie?sessie.tot:0, wortel=null;
+  const stemCache=new Map(); // id -> {rev, data}
+
+  async function token(vernieuw){
+    if(!vernieuw && tok && Date.now()<tot-60000) return tok;
+    const rt=lsGet('dbx_refresh'); if(!rt) throw new Error('Niet (meer) ingelogd bij Dropbox.');
+    let j; try { j=await dbxTokenAanvraag({grant_type:'refresh_token', refresh_token:rt}); }
+    catch(e){ lsDel('dbx_refresh'); throw new Error('Opnieuw inloggen bij Dropbox nodig ('+e.message+').'); }
+    tok=j.access_token; tot=Date.now()+(j.expires_in||14400)*1000; return tok;
+  }
+  async function vraag(url,init){
+    let vernieuw=false;
+    for(let poging=0;;poging++){
+      const r=await fetch(url,{...init, headers:{...init.headers, Authorization:'Bearer '+await token(vernieuw)}});
+      if(r.status===401 && !vernieuw){ vernieuw=true; continue; }
+      if((r.status===429 || r.status>=500) && poging<4){ await wacht(1000*(+r.headers.get('Retry-After')||2)); continue; }
+      if(!r.ok){ const t=await r.text().catch(()=>''); const e=new Error(t||('HTTP '+r.status)); e.status=r.status; throw e; }
+      return r;
+    }
+  }
+  const rpc=async(ep,arg)=>(await vraag(DBX_API+ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(arg)})).json();
+  const download=async(ep,arg)=>(await vraag(DBX_INHOUD+ep,{method:'POST',headers:{'Dropbox-API-Arg':kopJson(arg)}})).blob();
+  const stemPad=n=>wortel+'/'+STEMMAP+'/'+n;
+
+  // de gedeelde map is de map waarin "Selectie_stemmen" staat
+  async function vindWortel(){
+    const bewaard=lsGet('dbx_wortel');
+    if(bewaard){ try { const m=await rpc('files/get_metadata',{path:bewaard}); if(m['.tag']==='folder') return m.path_display; } catch(e){} }
+    let kand=[];
+    try {
+      const r=await rpc('files/search_v2',{query:STEMMAP, options:{file_categories:[{'.tag':'folder'}], max_results:20}});
+      kand=(r.matches||[]).map(m=>m.metadata&&m.metadata.metadata)
+        .filter(m=>m && m['.tag']==='folder' && m.name.toLowerCase()===STEMMAP.toLowerCase())
+        .map(m=>m.path_display.slice(0,-(STEMMAP.length+1)));
+    } catch(e){}
+    if(kand.length===1) return kand[0];
+    const p=prompt((kand.length ? 'Er zijn meerdere mogelijke mappen:\n'+kand.join('\n')+'\n\n' : 'De gedeelde map is niet automatisch gevonden. ')+
+      'Typ de naam van de gedeelde map zoals hij in je Dropbox staat:', kand[0]||'');
+    if(!p) throw new Error('Geen map gekozen. Is de gedeelde map al aan je Dropbox toegevoegd (dropbox.com → Gedeeld → Toevoegen)?');
+    const m=await rpc('files/get_metadata',{path:'/'+p.trim().replace(/^\/+|\/+$/g,'')}).catch(()=>null);
+    if(!m || m['.tag']!=='folder') throw new Error('Map "'+p+'" niet gevonden in je Dropbox.');
+    return m.path_display;
+  }
+
+  // miniaturen per 25 tegelijk ophalen; Dropbox maakt ze klein, dus weinig data op de telefoon
+  let rij=[], timer=null;
+  async function flush(){
+    clearTimeout(timer); timer=null;
+    const deel=rij.splice(0,25); if(!deel.length) return;
+    try {
+      const r=await (await vraag(DBX_INHOUD+'files/get_thumbnail_batch',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({entries:deel.map(d=>({path:d.f.ref, format:'jpeg', size:'w480h320', mode:'fitone_bestfit'}))})})).json();
+      r.entries.forEach((e,i)=>deel[i].ok(e['.tag']==='success' ? URL.createObjectURL(b64blob(e.thumbnail,'image/jpeg')) : null));
+    } catch(e){ deel.forEach(d=>d.ok(null)); }
+    if(rij.length) flush();
+  }
+
+  return {
+    parallel: 25,
+    async open(){ wortel=await vindWortel(); lsSet('dbx_wortel',wortel); },
+    async lijst(){
+      let r=await rpc('files/list_folder',{path:wortel, recursive:true, limit:2000}); const alle=[...r.entries];
+      while(r.has_more){ r=await rpc('files/list_folder/continue',{cursor:r.cursor}); alle.push(...r.entries); }
+      const uit=[];
+      for(const e of alle){
+        if(e['.tag']!=='file' || !beeld.test(e.name)) continue;
+        const pad=e.path_display.slice(wortel.length+1), delen=pad.split('/');
+        if(delen[0].toLowerCase()===STEMMAP.toLowerCase() || delen.some(d=>d.startsWith('.'))) continue;
+        uit.push({key:e.name+'|'+e.size, naam:e.name, map:delen.slice(0,-1).join('/')||'(hoofdmap)', pad, ref:e.id});
+      }
+      return uit;
+    },
+    async stemBestanden(){
+      let r; try { r=await rpc('files/list_folder',{path:wortel+'/'+STEMMAP}); } catch(e){ if(e.status===409) return []; throw e; }
+      return r.entries.filter(e=>e['.tag']==='file' && /\.json$/i.test(e.name)).map(e=>({bestand:e.name, ref:e.id, rev:e.rev}));
+    },
+    async lees(s){
+      const c=stemCache.get(s.ref); if(c && c.rev===s.rev) return c.data;
+      const data=JSON.parse(await (await download('files/download',{path:s.ref})).text());
+      stemCache.set(s.ref,{rev:s.rev,data}); return data;
+    },
+    async leesBestand(n){
+      try { return JSON.parse(await (await download('files/download',{path:stemPad(n)})).text()); }
+      catch(e){ if(e.status===409) return null; throw e; }
+    },
+    async schrijf(n,tekst){
+      await vraag(DBX_INHOUD+'files/upload',{method:'POST',headers:{'Content-Type':'application/octet-stream','Dropbox-API-Arg':kopJson({path:stemPad(n), mode:'overwrite', mute:true})},body:tekst});
+    },
+    duim(f){ return new Promise(ok=>{ rij.push({f,ok}); if(rij.length>=25) flush(); else if(!timer) timer=setTimeout(flush,60); }); },
+    async groot(f){
+      let blob;
+      try { blob=await download('files/get_thumbnail_v2',{resource:{'.tag':'path',path:f.ref}, format:'jpeg', size:'w2048h1536', mode:'fitone_bestfit'}); }
+      catch(e){ blob=await download('files/download',{path:f.ref}); }
+      return URL.createObjectURL(blob);
+    },
+  };
+}
+
+// ---------- startscherm ----------
+function toonNamen(){
+  const box=$('namen'); box.innerHTML='';
+  const namen=[...st.namen]; if(st.naam && !namen.includes(st.naam)) namen.push(st.naam);
+  for(const n of namen){
+    const b=document.createElement('button'); b.textContent=n;
+    if(n===st.naam) b.classList.add('actief');
+    b.onclick=()=>kiesNaam(n);
+    box.appendChild(b);
+  }
+  $('andereNaam').value='';
+}
+function kiesNaam(n){
+  n=(n||'').trim(); if(!n) return;
+  st.naam=n; lsSet('naam',n); toonNamen(); $('melding').textContent='';
+}
+$('andereNaam').addEventListener('change',e=>kiesNaam(e.target.value));
+
+async function verbind(bron){
+  $('melding').textContent='Verbinden…';
+  try {
+    await bron.open();
+    st.bron=bron;
+    const namen=new Set();
+    for(const s of await bron.stemBestanden()){ try { const d=await bron.lees(s); if(d && d.naam) namen.add(d.naam); } catch(e){} }
+    st.namen=[...namen].sort((a,b)=>a.localeCompare(b,'nl'));
+    $('melding').textContent='';
+    $('dbxUit').classList.toggle('verborgen',!lsGet('dbx_refresh'));
+    if(st.naam) return begin();
+    toonNamen(); $('stapNaam').classList.remove('verborgen');
+    $('melding').textContent='Verbonden. Kies nu je naam.';
+  } catch(e){ $('melding').textContent='Kon niet verbinden: '+e.message; }
+}
+
+$('kiesMap').onclick=async()=>{
+  try {
+    const d=await window.showDirectoryPicker({id:'uitvaartjan',mode:'readwrite'});
+    await idbSet('dir',d); await verbind(lokaleBron(d));
+  } catch(e){ if(e.name!=='AbortError') $('melding').textContent='Kon de map niet openen: '+e.message; }
+};
+$('verder').onclick=async()=>{
+  const d=await idbGet('dir'); if(!d) return;
+  try {
+    if(await d.requestPermission({mode:'readwrite'})!=='granted'){ $('melding').textContent='Geen toestemming gekregen. Kies de map opnieuw.'; return; }
+    await verbind(lokaleBron(d));
+  } catch(e){ $('melding').textContent='Kon de map niet openen: '+e.message+'. Kies de map opnieuw.'; }
+};
+$('dbxLogin').onclick=()=>dbxLogin();
+$('dbxUit').onclick=async()=>{
+  lsDel('dbx_refresh'); lsDel('dbx_wortel'); st.bron=null;
+  $('dbxUit').classList.add('verborgen'); $('stapNaam').classList.add('verborgen');
+  $('melding').textContent='Uitgelogd bij Dropbox.';
+};
+$('begin').onclick=()=>{ const extra=$('andereNaam').value.trim(); if(extra) kiesNaam(extra); begin(); };
+$('wissel').onclick=async()=>{
+  if(opslaanTimer) await opslaan();
+  $('app').classList.add('verborgen'); $('start').classList.remove('verborgen');
+  toonNamen(); $('stapNaam').classList.remove('verborgen');
+};
+
+function begin(){
+  if(!st.bron){ $('melding').textContent='Maak eerst verbinding (stap 1).'; return; }
+  if(!st.naam){ $('melding').textContent='Kies eerst je naam.'; return; }
+  if(st.mijnNaam!==st.naam){ st.mijn={}; st.nieuw=new Set(); st.fotos=[]; st.mijnNaam=st.naam; }
+  $('melding').textContent='';
+  $('start').classList.add('verborgen'); $('app').classList.remove('verborgen');
+  $('ikBen').textContent=st.naam;
+  ververs(true);
+}
+
+// ---------- foto's en stemmen inlezen ----------
+function bestandsnaam(n){ return 'stemmen_'+n.replace(/[^\p{L}\p{N}_-]+/gu,'_')+'.json'; }
+function mijnStem(key){ return (st.mijn[key] && st.mijn[key].stem) || null; }
+function stemVan(a,key){ return (a[key] && a[key].stem) || null; }
+function nieuwer(v,w){ return !w || (v.tijd||'')>(w.tijd||''); }
+
+async function leesStemmen(){
+  const mijn={}, anderen={};
+  for(const s of await st.bron.stemBestanden()){
+    let data; try { data=await st.bron.lees(s); } catch(e){ continue; }
+    if(!data || !data.naam || !data.stemmen) continue;
+    const doel = data.naam===st.naam ? mijn : (anderen[data.naam] ||= {});
+    for(const [k,v] of Object.entries(data.stemmen)) if(nieuwer(v,doel[k])) doel[k]=v;
+  }
+  return {mijn,anderen};
+}
+
+// welke foto's deze persoon al eerder heeft gezien (per apparaat), om nieuwe te markeren
+function gezienLezen(){ try { const v=JSON.parse(lsGet('gezien_'+st.naam)); return Array.isArray(v)?new Set(v):null; } catch(e){ return null; } }
+function gezienOpslaan(){ lsSet('gezien_'+st.naam, JSON.stringify(st.fotos.map(f=>f.key))); }
+
+// volledig: na een klik of bij het starten; anders automatisch op de achtergrond
+async function ververs(volledig){
+  if(st.bezig || !st.bron) return; st.bezig=true;
+  if(volledig) zetStatus('Bijwerken…');
+  try {
+    const lijst=await st.bron.lijst();
+    lijst.sort((a,b)=>a.map.localeCompare(b.map,'nl')||a.naam.localeCompare(b.naam,'nl',{numeric:true}));
+    const eerste=st.fotos.length===0;
+    const oud=new Set(st.fotos.map(f=>f.key+'|'+f.pad));
+    const bekend=eerste ? gezienLezen() : new Set(st.fotos.map(f=>f.key));
+    const erbij=bekend ? lijst.filter(f=>!bekend.has(f.key)) : [];
+    for(const f of erbij) st.nieuw.add(f.key);
+    const anders=eerste || lijst.length!==st.fotos.length || lijst.some(f=>!oud.has(f.key+'|'+f.pad));
+    st.fotos=lijst; gezienOpslaan();
+    const {mijn,anderen}=await leesStemmen();
+    // eigen stemmen van deze sessie gaan voor als ze nieuwer zijn; die uit het bestand vullen aan
+    for(const [k,v] of Object.entries(mijn)) if(nieuwer(v,st.mijn[k])) st.mijn[k]=v;
+    st.anderen=anderen;
+    if(anders){ vulMappen(); render(!eerste); } else { for(const f of st.fotos) werkKaartBij(f.key); toonVoortgang(); }
+    if(erbij.length) meld(eerste ? erbij.length+' nieuwe foto\'s sinds je vorige bezoek (filter "Nieuwe foto\'s")'
+                                 : (erbij.length===1 ? '1 nieuwe foto erbij' : erbij.length+' nieuwe foto\'s erbij'));
+    zetStatus('Bijgewerkt '+tijdNu());
+  } catch(e){ zetStatus('Fout bij inlezen: '+e.message); }
+  finally { st.bezig=false; }
+}
+$('ververs').onclick=()=>ververs(true);
+
+// automatisch: elke 90 seconden en zodra het venster weer actief wordt; niet terwijl de grote weergave open is
+function autoVervers(){
+  if(!st.bron || $('app').classList.contains('verborgen') || document.hidden) return;
+  if(!$('lichtbak').classList.contains('verborgen')){ st.wachtend=true; return; }
+  ververs(false);
+}
+setInterval(autoVervers, AUTO_INTERVAL);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) autoVervers(); });
+
+let melderTimer=null;
+function meld(t){ const m=$('melder'); m.textContent=t; m.classList.remove('verborgen'); clearTimeout(melderTimer); melderTimer=setTimeout(()=>m.classList.add('verborgen'),6000); }
+
+// ---------- opslaan ----------
+let opslaanTimer=null;
+function stem(key,s){
+  const f=st.fotos.find(x=>x.key===key); if(!f) return;
+  st.mijn[key]={stem: mijnStem(key)===s ? null : s, pad:f.pad, tijd:new Date().toISOString()};
+  werkKaartBij(key); toonVoortgang();
+  zetStatus('Opslaan…');
+  clearTimeout(opslaanTimer); opslaanTimer=setTimeout(opslaan,800);
+}
+// eerst het eigen bestand lezen en samenvoegen, zodat stemmen van een ander apparaat (telefoon/computer) niet verloren gaan
+async function opslaan(){
+  clearTimeout(opslaanTimer); opslaanTimer=null;
+  const naam=st.naam, bestand=bestandsnaam(naam);
+  try {
+    const bestaand=await st.bron.leesBestand(bestand);
+    let erbij=false;
+    if(bestaand && bestaand.stemmen) for(const [k,v] of Object.entries(bestaand.stemmen)) if(nieuwer(v,st.mijn[k])){ st.mijn[k]=v; erbij=true; }
+    await st.bron.schrijf(bestand, JSON.stringify({naam, bijgewerkt:new Date().toISOString(), stemmen:st.mijn},null,1));
+    if(erbij){ for(const f of st.fotos) werkKaartBij(f.key); toonVoortgang(); }
+    zetStatus('Opgeslagen '+tijdNu());
+  } catch(e){ zetStatus('NIET opgeslagen: '+e.message); }
+}
+window.addEventListener('beforeunload',e=>{ if(opslaanTimer){ opslaan(); e.preventDefault(); } });
+document.addEventListener('visibilitychange',()=>{ if(document.hidden && opslaanTimer) opslaan(); });
+
+// ---------- weergave ----------
+function vulMappen(){
+  const sel=$('fMap'), was=sel.value||lsGet('map')||'';
+  const mappen=[...new Set(st.fotos.map(f=>f.map))];
+  sel.innerHTML='<option value="">Alle mappen ('+st.fotos.length+')</option>'+
+    mappen.map(m=>`<option value="${esc(m)}">${esc(m)} (${st.fotos.filter(f=>f.map===m).length})</option>`).join('');
+  sel.value=mappen.includes(was)?was:'';
+}
+function aantalJa(key){ let n=mijnStem(key)==='ja'?1:0; for(const a of Object.values(st.anderen)) if(stemVan(a,key)==='ja') n++; return n; }
+function filter(){
+  const m=$('fMap').value, t=$('fToon').value;
+  let l=st.fotos.filter(f=>{
+    if(m && f.map!==m) return false;
+    const s=mijnStem(f.key);
+    if(t==='open') return !s;
+    if(t==='nieuw') return st.nieuw.has(f.key);
+    if(t==='ja'||t==='twijfel'||t==='nee') return s===t;
+    if(t==='iemandJa') return aantalJa(f.key)>0;
+    return true;
+  });
+  if($('fSorteer').value==='stemmen') l=l.slice().sort((a,b)=>aantalJa(b.key)-aantalJa(a.key));
+  return l;
+}
+['fMap','fToon','fSorteer'].forEach(id=>$(id).addEventListener('change',()=>{ lsSet(id==='fMap'?'map':id,$(id).value); render(); }));
+
+const kaarten=new Map();
+// houdPlek: de foto die bovenaan in beeld staat blijft op dezelfde plek (bij automatisch bijwerken)
+function render(houdPlek){
+  const raster=$('raster');
+  let anker=null, ankerTop=0;
+  if(houdPlek) for(const k of raster.children){ const r=k.getBoundingClientRect(); if(r.bottom>60){ anker=k.dataset.key; ankerTop=r.top; break; } }
+  raster.innerHTML=''; kaarten.clear();
+  st.lijst=filter();
+  const frag=document.createDocumentFragment();
+  st.lijst.forEach((f,i)=>{
+    const k=document.createElement('div'); k.className='kaart'; k.dataset.key=f.key;
+    k.innerHTML=`<div class="duim">laden…</div><div class="meta" title="${esc(f.pad)}">${esc(f.pad)}</div>
+      <div class="knoppen"><button class="s-ja" data-s="ja">Ja</button><button class="s-twijfel" data-s="twijfel">Twijfel</button><button class="s-nee" data-s="nee">Nee</button></div>
+      <div class="anderen"></div>`;
+    k.querySelector('.duim').onclick=()=>openLb(i);
+    k.querySelectorAll('.knoppen button').forEach(b=>b.onclick=()=>stem(f.key,b.dataset.s));
+    frag.appendChild(k); kaarten.set(f.key,k); werkKaartBij(f.key,k);
+    if(duimCache.has(f.key)) zetDuim(k,duimCache.get(f.key)); else zichtbaar.observe(k);
+  });
+  raster.appendChild(frag);
+  const ak=anker&&kaarten.get(anker); if(ak) window.scrollBy(0, ak.getBoundingClientRect().top-ankerTop);
+  $('leeg').classList.toggle('verborgen',st.lijst.length>0);
+  toonVoortgang();
+}
+function werkKaartBij(key,k){
+  k=k||kaarten.get(key); if(!k) return;
+  const s=mijnStem(key);
+  k.classList.remove('v-ja','v-twijfel','v-nee'); if(s) k.classList.add('v-'+s);
+  k.querySelectorAll('.knoppen button').forEach(b=>b.classList.toggle('actief',b.dataset.s===s));
+  k.querySelector('.anderen').innerHTML=chips(key);
+  const d=k.querySelector('.duim'), b=d.querySelector('.nieuw'), toon=st.nieuw.has(key)&&!s;
+  if(toon && !b) d.insertAdjacentHTML('beforeend','<span class="nieuw">nieuw</span>'); else if(!toon && b) b.remove();
+  if(st.lbIndex>=0 && st.lijst[st.lbIndex] && st.lijst[st.lbIndex].key===key) lbKnoppen();
+}
+function chips(key){
+  return Object.entries(st.anderen).filter(([,a])=>stemVan(a,key)).sort(([a],[b])=>a.localeCompare(b,'nl'))
+    .map(([n,a])=>`<span class="chip ${a[key].stem}">${esc(n)}: ${a[key].stem}</span>`).join('');
+}
+function toonVoortgang(){
+  const totaal=st.fotos.length, klaar=st.fotos.filter(f=>mijnStem(f.key)).length;
+  const ja=st.fotos.filter(f=>mijnStem(f.key)==='ja').length;
+  $('voortgang').textContent=`${klaar} van ${totaal} beoordeeld · ${ja} ja`;
+}
+
+// ---------- miniaturen ----------
+const duimCache=new Map(); const wachtrij=[]; let bezig=0;
+const zichtbaar=new IntersectionObserver(es=>{ for(const e of es) if(e.isIntersecting){ zichtbaar.unobserve(e.target); wachtrij.push(e.target); } pomp(); },{rootMargin:'800px'});
+function pomp(){
+  while(st.bron && bezig<st.bron.parallel && wachtrij.length){
+    const k=wachtrij.shift(); if(!k.isConnected) continue;
+    bezig++; maakDuim(k.dataset.key).then(url=>zetDuim(k,url)).finally(()=>{ bezig--; pomp(); });
+  }
+}
+async function maakDuim(key){
+  if(duimCache.has(key)) return duimCache.get(key);
+  const f=st.fotos.find(x=>x.key===key); if(!f) return null;
+  try { const url=await st.bron.duim(f); if(url) duimCache.set(key,url); return url; } catch(e){ return null; }
+}
+function zetDuim(k,url){
+  const d=k.querySelector('.duim'), b=d.querySelector('.nieuw');
+  if(url){ d.innerHTML=''; const img=new Image(); img.src=url; img.alt=''; d.appendChild(img); } else d.textContent='kan niet laden';
+  if(b) d.appendChild(b);
+}
+
+// ---------- lichtbak ----------
+async function openLb(i){
+  st.lbIndex=i; $('lichtbak').classList.remove('verborgen');
+  const f=st.lijst[i]; if(!f) return sluitLb();
+  if(st.lbUrl){ URL.revokeObjectURL(st.lbUrl); st.lbUrl=null; }
+  $('lbImg').src=duimCache.get(f.key)||'';
+  $('lbInfo').innerHTML=`${i+1} / ${st.lijst.length} · ${esc(f.pad)}<br>${chips(f.key)||'&nbsp;'}`;
+  lbKnoppen();
+  try { const url=await st.bron.groot(f); if(st.lbIndex!==i){ URL.revokeObjectURL(url); return; } st.lbUrl=url; $('lbImg').src=url; } catch(e){}
+}
+function lbKnoppen(){
+  const f=st.lijst[st.lbIndex]; const s=f&&mijnStem(f.key);
+  document.querySelectorAll('#lichtbak .balk button').forEach(b=>b.classList.toggle('actief',b.dataset.s===s));
+}
+function sluitLb(){
+  $('lichtbak').classList.add('verborgen');
+  if(st.lbUrl){ URL.revokeObjectURL(st.lbUrl); st.lbUrl=null; }
+  const f=st.lijst[st.lbIndex]; st.lbIndex=-1;
+  const k=f&&kaarten.get(f.key); if(k) k.scrollIntoView({block:'center'});
+  if(st.wachtend){ st.wachtend=false; ververs(false); }
+}
+function lbStem(s){
+  const f=st.lijst[st.lbIndex]; if(!f) return;
+  const wasZelfde=mijnStem(f.key)===s;
+  stem(f.key,s);
+  if(!wasZelfde && st.lbIndex<st.lijst.length-1) setTimeout(()=>openLb(st.lbIndex+1),250);
+}
+document.querySelectorAll('#lichtbak .balk button').forEach(b=>b.onclick=()=>lbStem(b.dataset.s));
+$('lbVorige').onclick=()=>{ if(st.lbIndex>0) openLb(st.lbIndex-1); };
+$('lbVolgende').onclick=()=>{ if(st.lbIndex<st.lijst.length-1) openLb(st.lbIndex+1); };
+$('lbSluit').onclick=sluitLb;
+document.addEventListener('keydown',e=>{
+  if($('lichtbak').classList.contains('verborgen')) return;
+  const k=e.key.toLowerCase();
+  if(k==='arrowleft') $('lbVorige').click();
+  else if(k==='arrowright') $('lbVolgende').click();
+  else if(k==='escape') sluitLb();
+  else if(k==='j'||k==='1') lbStem('ja');
+  else if(k==='t'||k==='2') lbStem('twijfel');
+  else if(k==='n'||k==='3') lbStem('nee');
+  else return;
+  e.preventDefault();
+});
+// vegen op de telefoon: naar links = volgende, naar rechts = vorige
+let veegX=null;
+$('lichtbak').addEventListener('touchstart',e=>{ veegX=e.touches.length===1?e.touches[0].clientX:null; },{passive:true});
+$('lichtbak').addEventListener('touchend',e=>{
+  if(veegX===null) return; const dx=e.changedTouches[0].clientX-veegX; veegX=null;
+  if(Math.abs(dx)>60) (dx<0?$('lbVolgende'):$('lbVorige')).click();
+});
+
+// ---------- hulp ----------
+function esc(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function tijdNu(){ return new Date().toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'}); }
+function zetStatus(t){ $('status').textContent=t; }
+
+(async()=>{
+  const kanDropbox=!!DROPBOX_APP_KEY && /^https?:$/.test(location.protocol);
+  const kanMap=!!window.showDirectoryPicker;
+  $('bronDropbox').classList.toggle('verborgen',!kanDropbox);
+  $('bronMap').classList.toggle('verborgen',!kanMap);
+  if(!kanDropbox){
+    $('nietOndersteund').classList.toggle('verborgen',kanMap);
+    if(WEBADRES) $('webadres').innerHTML=` <a href="${esc(WEBADRES)}">${esc(WEBADRES)}</a>`;
+  }
+  st.naam=lsGet('naam');
+  for(const id of ['fToon','fSorteer']){ const v=lsGet(id); if(v) $(id).value=v; }
+  if(kanMap && await idbGet('dir')) $('verder').classList.remove('verborgen');
+  if(kanDropbox){
+    try {
+      const sessie=await dbxTerugVanLogin();
+      if(sessie || lsGet('dbx_refresh')) await verbind(dropboxBron(sessie));
+    } catch(e){ $('melding').textContent='Dropbox: '+e.message; }
+  }
+})();
+</script>
+</body>
+</html>
