@@ -48,7 +48,6 @@ button.s-nee.actief{background:var(--nee);border-color:var(--nee);color:#fff}
 .chip{font-size:11px;border-radius:10px;padding:1px 7px;color:#fff}
 .chip.super{background:var(--super)}.chip.ja{background:var(--ja)}.chip.twijfel{background:var(--tw)}.chip.nee{background:var(--nee)}
 #leeg{padding:40px 16px;color:var(--muted);text-align:center}
-#melder{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:9;background:var(--accent);color:var(--bg);border-radius:20px;padding:8px 18px;box-shadow:0 2px 10px rgba(0,0,0,.25);max-width:calc(100% - 32px);text-align:center}
 #lichtbak{position:fixed;inset:0;z-index:10;background:rgba(10,10,10,.94);color:#eee;display:flex;flex-direction:column}
 #lichtbak .beeld{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;position:relative}
 #lichtbak img{max-width:100%;max-height:100%;object-fit:contain}
@@ -129,7 +128,6 @@ button.s-nee.actief{background:var(--nee);border-color:var(--nee);color:#fff}
   </header>
   <div id="raster"></div>
   <div id="leeg" class="verborgen">Geen foto's in deze selectie.</div>
-  <div id="melder" class="verborgen"></div>
 </section>
 
 <section id="lichtbak" class="verborgen">
@@ -468,8 +466,6 @@ async function ververs(volledig){
     for(const [k,v] of Object.entries(mijn)) if(nieuwer(v,st.mijn[k])) st.mijn[k]=v;
     st.anderen=anderen;
     if(anders){ vulMappen(); render(!eerste); } else { for(const f of st.fotos) werkKaartBij(f.key); toonVoortgang(); }
-    if(erbij.length) meld(eerste ? erbij.length+' nieuwe foto\'s sinds je vorige bezoek (filter "Nieuwe foto\'s")'
-                                 : (erbij.length===1 ? '1 nieuwe foto erbij' : erbij.length+' nieuwe foto\'s erbij'));
     zetStatus('Bijgewerkt '+tijdNu());
   } catch(e){ zetStatus('Fout bij inlezen: '+e.message); }
   finally { st.bezig=false; }
@@ -485,8 +481,6 @@ function autoVervers(){
 setInterval(autoVervers, AUTO_INTERVAL);
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) autoVervers(); });
 
-let melderTimer=null;
-function meld(t){ const m=$('melder'); m.textContent=t; m.classList.remove('verborgen'); clearTimeout(melderTimer); melderTimer=setTimeout(()=>m.classList.add('verborgen'),6000); }
 
 // ---------- opslaan ----------
 let opslaanTimer=null;
