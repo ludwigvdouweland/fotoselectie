@@ -6,8 +6,8 @@
 <meta name="robots" content="noindex,nofollow">
 <title>Fotoselectie</title>
 <style>
-:root{--bg:#f6f4f0;--card:#fff;--ink:#2b2a28;--muted:#77736c;--line:#e2ddd4;--ja:#2f7d4f;--tw:#b7862a;--nee:#a44a3f;--accent:#4a5a6a}
-@media (prefers-color-scheme: dark){:root{--bg:#1c1b1a;--card:#262523;--ink:#ece8e1;--muted:#a19c93;--line:#3a3835;--ja:#5fb07f;--tw:#d8a948;--nee:#d27a6e;--accent:#9fb3c8}}
+:root{--bg:#f6f4f0;--card:#fff;--ink:#2b2a28;--muted:#77736c;--line:#e2ddd4;--super:#6b4fa0;--ja:#2f7d4f;--tw:#b7862a;--nee:#a44a3f;--accent:#4a5a6a}
+@media (prefers-color-scheme: dark){:root{--bg:#1c1b1a;--card:#262523;--ink:#ece8e1;--muted:#a19c93;--line:#3a3835;--super:#a98be0;--ja:#5fb07f;--tw:#d8a948;--nee:#d27a6e;--accent:#9fb3c8}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "Segoe UI",system-ui,sans-serif}
 h1{font-weight:500;font-size:22px;margin:0}
@@ -33,19 +33,20 @@ header .ruimte{flex:1}
 #voortgang{font-size:13px}
 #raster{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;padding:16px}
 .kaart{background:var(--card);border:2px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
-.kaart.v-ja{border-color:var(--ja)}.kaart.v-twijfel{border-color:var(--tw)}.kaart.v-nee{border-color:var(--nee);opacity:.6}
+.kaart.v-super{border-color:var(--super);box-shadow:0 0 0 2px var(--super)}.kaart.v-ja{border-color:var(--ja)}.kaart.v-twijfel{border-color:var(--tw)}.kaart.v-nee{border-color:var(--nee);opacity:.6}
 .duim{position:relative;aspect-ratio:4/3;background:var(--line);display:flex;align-items:center;justify-content:center;cursor:zoom-in;color:var(--muted);font-size:12px}
 .duim img{width:100%;height:100%;object-fit:contain;display:block}
 .nieuw{position:absolute;top:6px;left:6px;background:var(--accent);color:var(--bg);font-size:11px;font-weight:600;border-radius:10px;padding:1px 8px}
 .meta{padding:6px 10px 0;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.knoppen{display:flex;gap:6px;padding:8px 10px}
+.knoppen{display:flex;gap:4px;padding:8px 8px}
 .knoppen button{flex:1;padding:5px 0;font-size:13px}
+button.s-super.actief{background:var(--super);border-color:var(--super);color:#fff}
 button.s-ja.actief{background:var(--ja);border-color:var(--ja);color:#fff}
 button.s-twijfel.actief{background:var(--tw);border-color:var(--tw);color:#fff}
 button.s-nee.actief{background:var(--nee);border-color:var(--nee);color:#fff}
 .anderen{padding:0 10px 8px;display:flex;flex-wrap:wrap;gap:4px;min-height:4px}
 .chip{font-size:11px;border-radius:10px;padding:1px 7px;color:#fff}
-.chip.ja{background:var(--ja)}.chip.twijfel{background:var(--tw)}.chip.nee{background:var(--nee)}
+.chip.super{background:var(--super)}.chip.ja{background:var(--ja)}.chip.twijfel{background:var(--tw)}.chip.nee{background:var(--nee)}
 #leeg{padding:40px 16px;color:var(--muted);text-align:center}
 #melder{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:9;background:var(--accent);color:var(--bg);border-radius:20px;padding:8px 18px;box-shadow:0 2px 10px rgba(0,0,0,.25);max-width:calc(100% - 32px);text-align:center}
 #lichtbak{position:fixed;inset:0;z-index:10;background:rgba(10,10,10,.94);color:#eee;display:flex;flex-direction:column}
@@ -73,7 +74,7 @@ button.s-nee.actief{background:var(--nee);border-color:var(--nee);color:#fff}
 
 <section id="start">
   <h1>Foto's kiezen</h1>
-  <p>Geef per foto aan of je hem in een fotoshow wilt: <b>ja</b>, <b>twijfel</b> of <b>nee</b>. Je keuzes worden automatisch opgeslagen in de gedeelde Dropbox-map, en je ziet ook wat de anderen hebben gekozen. Nieuwe foto's verschijnen vanzelf.</p>
+  <p>Geef per foto aan of je hem in een fotoshow wilt: <b>super</b> (deze moet er zeker in), <b>ja</b>, <b>twijfel</b> of <b>nee</b>. Je keuzes worden automatisch opgeslagen in de gedeelde Dropbox-map, en je ziet ook wat de anderen hebben gekozen. Nieuwe foto's verschijnen vanzelf.</p>
 
   <div class="stap" id="stapBron">
     <h2>1. Verbinden met de foto's</h2>
@@ -110,14 +111,16 @@ button.s-nee.actief{background:var(--nee);border-color:var(--nee);color:#fff}
       <option value="alle">Alle foto's</option>
       <option value="open">Nog niet door mij beoordeeld</option>
       <option value="nieuw">Nieuwe foto's</option>
+      <option value="super">Mijn super</option>
       <option value="ja">Mijn ja</option>
       <option value="twijfel">Mijn twijfel</option>
       <option value="nee">Mijn nee</option>
-      <option value="iemandJa">Ja van iemand</option>
+      <option value="iemandSuper">Super van iemand</option>
+      <option value="iemandJa">Ja of super van iemand</option>
     </select>
     <select id="fSorteer">
       <option value="map">Sorteer op map</option>
-      <option value="stemmen">Sorteer op meeste ja</option>
+      <option value="stemmen">Sorteer op meeste super en ja</option>
     </select>
     <span class="ruimte"></span>
     <span id="voortgang"></span>
@@ -138,6 +141,7 @@ button.s-nee.actief{background:var(--nee);border-color:var(--nee);color:#fff}
   </div>
   <div class="info" id="lbInfo"></div>
   <div class="balk">
+    <button class="s-super" data-s="super">Super (S)</button>
     <button class="s-ja" data-s="ja">Ja (J)</button>
     <button class="s-twijfel" data-s="twijfel">Twijfel (T)</button>
     <button class="s-nee" data-s="nee">Nee (N)</button>
@@ -517,7 +521,10 @@ function vulMappen(){
     mappen.map(m=>`<option value="${esc(m)}">${esc(m)} (${st.fotos.filter(f=>f.map===m).length})</option>`).join('');
   sel.value=mappen.includes(was)?was:'';
 }
-function aantalJa(key){ let n=mijnStem(key)==='ja'?1:0; for(const a of Object.values(st.anderen)) if(stemVan(a,key)==='ja') n++; return n; }
+// super telt ook als ja
+function aantal(key,soorten){ let n=soorten.includes(mijnStem(key))?1:0; for(const a of Object.values(st.anderen)) if(soorten.includes(stemVan(a,key))) n++; return n; }
+function aantalJa(key){ return aantal(key,['super','ja']); }
+function aantalSuper(key){ return aantal(key,['super']); }
 function filter(){
   const m=$('fMap').value, t=$('fToon').value;
   let l=st.fotos.filter(f=>{
@@ -525,11 +532,12 @@ function filter(){
     const s=mijnStem(f.key);
     if(t==='open') return !s;
     if(t==='nieuw') return st.nieuw.has(f.key);
-    if(t==='ja'||t==='twijfel'||t==='nee') return s===t;
+    if(t==='super'||t==='ja'||t==='twijfel'||t==='nee') return s===t;
+    if(t==='iemandSuper') return aantalSuper(f.key)>0;
     if(t==='iemandJa') return aantalJa(f.key)>0;
     return true;
   });
-  if($('fSorteer').value==='stemmen') l=l.slice().sort((a,b)=>aantalJa(b.key)-aantalJa(a.key));
+  if($('fSorteer').value==='stemmen') l=l.slice().sort((a,b)=>aantalSuper(b.key)-aantalSuper(a.key) || aantalJa(b.key)-aantalJa(a.key));
   return l;
 }
 ['fMap','fToon','fSorteer'].forEach(id=>$(id).addEventListener('change',()=>{ lsSet(id==='fMap'?'map':id,$(id).value); render(); }));
@@ -546,7 +554,7 @@ function render(houdPlek){
   st.lijst.forEach((f,i)=>{
     const k=document.createElement('div'); k.className='kaart'; k.dataset.key=f.key;
     k.innerHTML=`<div class="duim">laden…</div><div class="meta" title="${esc(f.pad)}">${esc(f.pad)}</div>
-      <div class="knoppen"><button class="s-ja" data-s="ja">Ja</button><button class="s-twijfel" data-s="twijfel">Twijfel</button><button class="s-nee" data-s="nee">Nee</button></div>
+      <div class="knoppen"><button class="s-super" data-s="super">Super</button><button class="s-ja" data-s="ja">Ja</button><button class="s-twijfel" data-s="twijfel">Twijfel</button><button class="s-nee" data-s="nee">Nee</button></div>
       <div class="anderen"></div>`;
     k.querySelector('.duim').onclick=()=>openLb(i);
     k.querySelectorAll('.knoppen button').forEach(b=>b.onclick=()=>stem(f.key,b.dataset.s));
@@ -561,7 +569,7 @@ function render(houdPlek){
 function werkKaartBij(key,k){
   k=k||kaarten.get(key); if(!k) return;
   const s=mijnStem(key);
-  k.classList.remove('v-ja','v-twijfel','v-nee'); if(s) k.classList.add('v-'+s);
+  k.classList.remove('v-super','v-ja','v-twijfel','v-nee'); if(s) k.classList.add('v-'+s);
   k.querySelectorAll('.knoppen button').forEach(b=>b.classList.toggle('actief',b.dataset.s===s));
   k.querySelector('.anderen').innerHTML=chips(key);
   const d=k.querySelector('.duim'), b=d.querySelector('.nieuw'), toon=st.nieuw.has(key)&&!s;
@@ -574,8 +582,8 @@ function chips(key){
 }
 function toonVoortgang(){
   const totaal=st.fotos.length, klaar=st.fotos.filter(f=>mijnStem(f.key)).length;
-  const ja=st.fotos.filter(f=>mijnStem(f.key)==='ja').length;
-  $('voortgang').textContent=`${klaar} van ${totaal} beoordeeld · ${ja} ja`;
+  const sup=st.fotos.filter(f=>mijnStem(f.key)==='super').length, ja=st.fotos.filter(f=>mijnStem(f.key)==='ja').length;
+  $('voortgang').textContent=`${klaar} van ${totaal} beoordeeld · ${sup} super · ${ja} ja`;
 }
 
 // ---------- miniaturen ----------
@@ -635,6 +643,7 @@ document.addEventListener('keydown',e=>{
   if(k==='arrowleft') $('lbVorige').click();
   else if(k==='arrowright') $('lbVolgende').click();
   else if(k==='escape') sluitLb();
+  else if(k==='s'||k==='0') lbStem('super');
   else if(k==='j'||k==='1') lbStem('ja');
   else if(k==='t'||k==='2') lbStem('twijfel');
   else if(k==='n'||k==='3') lbStem('nee');
