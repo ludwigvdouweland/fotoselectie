@@ -56,6 +56,13 @@ button.s-nee.actief{background:var(--nee);border-color:var(--nee);color:#fff}
 .shows button.ster.actief{background:#c9a227;border-color:#c9a227;color:#fff}
 .shows button.ster:disabled{opacity:.3;cursor:default}
 .inshow{position:absolute;top:6px;right:6px;background:var(--accent);color:var(--bg);font-size:11px;font-weight:600;border-radius:10px;padding:1px 8px}
+.insel{position:absolute;bottom:6px;left:6px;background:var(--ja);color:#fff;font-size:11px;font-weight:600;border-radius:10px;padding:1px 8px}
+.selrij{padding:0 8px 8px}
+.selrij button{width:100%;font-size:12px;padding:3px 0;color:var(--muted)}
+.selrij button.actief{background:var(--ja);border-color:var(--ja);color:#fff}
+#lichtbak .selrij{display:flex;justify-content:center;padding:0 16px 12px}
+#lichtbak .selrij button{width:auto;min-width:200px;background:#2a2a2a;border-color:#444;color:#eee;padding:6px 14px;font-size:13px}
+#lichtbak .selrij button.actief{background:var(--ja);border-color:var(--ja);color:#fff}
 .kpis{flex-basis:100%;display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
 .kpi{flex:1 0 128px;text-align:left;border-radius:8px;padding:5px 9px;line-height:1.3;font-size:12px}
 .kpi.actief{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
@@ -142,6 +149,11 @@ button.s-nee.actief{background:var(--nee);border-color:var(--nee);color:#fff}
       <option value="iemandJa">Ja of super van iemand</option>
     </select>
     <select id="fShow"></select>
+    <select id="fLijst">
+      <option value="">Selectie: alles</option>
+      <option value="in">In de selectie</option>
+      <option value="uit">Niet in de selectie</option>
+    </select>
     <select id="fSorteer">
       <option value="map">Sorteer op map</option>
       <option value="stemmen">Sorteer op meeste super en ja</option>
@@ -169,9 +181,10 @@ button.s-nee.actief{background:var(--nee);border-color:var(--nee);color:#fff}
     <button class="s-ja" data-s="ja">Ja (J)</button>
     <button class="s-twijfel" data-s="twijfel">Twijfel (T)</button>
     <button class="s-nee" data-s="nee">Nee (N)</button>
-    <span class="toetsen">← → bladeren · Esc sluiten · na een keuze gaat hij door naar de volgende · 0–5 fotoshow · L laatste foto</span>
+    <span class="toetsen">← → bladeren · Esc sluiten · na een keuze gaat hij door naar de volgende · 0–5 fotoshow · L laatste foto · K selectie</span>
   </div>
   <div class="shows" id="lbShows"></div>
+  <div class="selrij"><button id="lbSel"></button></div>
 </section>
 
 <script>
@@ -180,6 +193,7 @@ const DROPBOX_APP_KEY = 'crl609jc8bzsz3u';   // "App key" van de Dropbox-app (is
 const WEBADRES = 'https://ludwigvdouweland.github.io/fotoselectie/';          // adres waar de app online staat, voor wie dit bestand op een telefoon opent
 const STEMMAP = 'Selectie_stemmen';
 const SHOWMAP = 'Selectie_shows';
+const LIJSTMAP = 'Selectie_lijst';  // selectie: welke foto's overblijven (per foto aan/uit)
 // de fotoshows: duur van het nummer in seconden; nodig aantal foto's = duur / SEC_PER_FOTO
 const SHOWS = [
   {nr:1, naam:'Kinderen', nummer:'Di-rect – My Friend', duur:241},
@@ -201,6 +215,9 @@ const st = {
   showMijn: {},    // key -> {show, laatste, pad, tijd}; show 0 = in geen show
   showAnderen: {}, // naam -> {key -> {show, laatste, pad, tijd}}
   toewijzing: new Map(), // key -> {show, laatste, door}: de laatste wijziging van wie dan ook
+  lijstMijn: {},   // key -> {in, pad, tijd}: in de selectie of niet
+  lijstAnderen: {},// naam -> {key -> {in, pad, tijd}}
+  selectie: new Map(), // key -> {in, door, tijd}: de laatste wijziging van wie dan ook
   namen: [],
   lijst: [], lbIndex: -1, lbUrl: null,
   mijnNaam: null,  // naam waar st.mijn bij hoort
@@ -230,7 +247,7 @@ function lokaleBron(dir){
   async function scan(dirH,pad,uit){
     for await (const [n,h] of dirH.entries()){
       if(h.kind==='directory'){
-        if(n===STEMMAP || n===SHOWMAP || n.startsWith('.')) continue;
+        if(n===STEMMAP || n===SHOWMAP || n===LIJSTMAP || n.startsWith('.')) continue;
         await scan(h, pad? pad+'/'+n : n, uit);
       } else if(beeld.test(n)){
         let size=0; try { size=(await h.getFile()).size; } catch(e){}
@@ -373,7 +390,7 @@ function dropboxBron(sessie){
       for(const e of alle){
         if(e['.tag']!=='file' || !beeld.test(e.name)) continue;
         const pad=e.path_display.slice(wortel.length+1), delen=pad.split('/');
-        if(delen.length>1 && [STEMMAP,SHOWMAP].some(m=>delen[0].toLowerCase()===m.toLowerCase()) || delen.some(d=>d.startsWith('.'))) continue;
+        if(delen.length>1 && [STEMMAP,SHOWMAP,LIJSTMAP].some(m=>delen[0].toLowerCase()===m.toLowerCase()) || delen.some(d=>d.startsWith('.'))) continue;
         uit.push({key:e.name+'|'+e.size, naam:e.name, map:delen.slice(0,-1).join('/')||'(hoofdmap)', pad, ref:e.id});
       }
       return uit;
@@ -461,6 +478,7 @@ $('begin').onclick=()=>{ const extra=$('andereNaam').value.trim(); if(extra) kie
 $('wissel').onclick=async()=>{
   if(opslaanTimer) await opslaan();
   if(showTimer) await showOpslaan();
+  if(lijstTimer) await lijstOpslaan();
   $('app').classList.add('verborgen'); $('start').classList.remove('verborgen');
   toonNamen(); $('stapNaam').classList.remove('verborgen');
 };
@@ -468,7 +486,7 @@ $('wissel').onclick=async()=>{
 function begin(){
   if(!st.bron){ $('melding').textContent='Maak eerst verbinding (stap 1).'; return; }
   if(!st.naam){ $('melding').textContent='Kies eerst je naam.'; return; }
-  if(st.mijnNaam!==st.naam){ st.mijn={}; st.showMijn={}; st.nieuw=new Set(); st.fotos=[]; st.mijnNaam=st.naam; }
+  if(st.mijnNaam!==st.naam){ st.mijn={}; st.showMijn={}; st.lijstMijn={}; st.nieuw=new Set(); st.fotos=[]; st.mijnNaam=st.naam; }
   $('melding').textContent='';
   $('start').classList.add('verborgen'); $('app').classList.remove('verborgen');
   $('ikBen').textContent=st.naam;
@@ -517,6 +535,7 @@ function zetShow(key,show,laatste){
   }
   st.showMijn[key]={show, laatste:!!(show&&laatste), pad:f.pad, tijd};
   berekenToewijzing();
+  if(show && !inSelectie(key)) zetSelectie(key,true);
   for(const k of geraakt) werkKaartBij(k);
   toonVoortgang();
   zetStatus('Opslaan…');
@@ -534,6 +553,42 @@ async function showOpslaan(){
     if(erbij){ berekenToewijzing(); for(const k of kaarten.keys()) werkKaartBij(k); toonVoortgang(); }
     zetStatus('Opgeslagen '+tijdNu());
   } catch(e){ zetStatus('NIET opgeslagen: '+e.message); }
+}
+
+// ---------- selectie: welke foto's overblijven; per foto telt de laatste wijziging, van wie dan ook ----------
+function lijstBestandsnaam(n){ return 'lijst_'+n.replace(/[^\p{L}\p{N}_-]+/gu,'_')+'.json'; }
+function berekenSelectie(){
+  const m=new Map();
+  for(const [door,a] of [[st.naam,st.lijstMijn],...Object.entries(st.lijstAnderen)]) for(const [k,v] of Object.entries(a)){
+    const w=m.get(k); if(!w || (v.tijd||'')>(w.tijd||'')) m.set(k,{in:!!v.in, door, tijd:v.tijd});
+  }
+  st.selectie=m;
+}
+function inSelectie(key){ const v=st.selectie.get(key); return !!(v&&v.in); }
+function zetSelectie(key,aan){
+  const f=st.fotos.find(x=>x.key===key); if(!f) return;
+  st.lijstMijn[key]={in:!!aan, pad:f.pad, tijd:new Date().toISOString()};
+  berekenSelectie(); werkKaartBij(key); toonVoortgang();
+  zetStatus('Opslaan…');
+  clearTimeout(lijstTimer); lijstTimer=setTimeout(lijstOpslaan,800);
+}
+let lijstTimer=null;
+async function lijstOpslaan(){
+  clearTimeout(lijstTimer); lijstTimer=null;
+  const naam=st.naam, bestand=lijstBestandsnaam(naam);
+  try {
+    const bestaand=await st.bron.leesBestand(bestand,LIJSTMAP);
+    let erbij=false;
+    if(bestaand && bestaand.lijst) for(const [k,v] of Object.entries(bestaand.lijst)) if(nieuwer(v,st.lijstMijn[k])){ st.lijstMijn[k]=v; erbij=true; }
+    await st.bron.schrijf(bestand, JSON.stringify({naam, bijgewerkt:new Date().toISOString(), lijst:st.lijstMijn},null,1), LIJSTMAP);
+    if(erbij){ berekenSelectie(); for(const k of kaarten.keys()) werkKaartBij(k); toonVoortgang(); }
+    zetStatus('Opgeslagen '+tijdNu());
+  } catch(e){ zetStatus('NIET opgeslagen: '+e.message); }
+}
+// knoptekst; bij een keuze van een ander staat de naam erbij
+function selTekst(key){
+  const v=st.selectie.get(key), door=v&&v.door&&v.door!==st.naam ? ' · '+v.door : '';
+  return (inSelectie(key) ? '✓ In de selectie' : '+ In de selectie')+door;
 }
 
 // ---------- KPI's per show ----------
@@ -598,6 +653,9 @@ async function ververs(volledig){
     const sh=await leesStemmen(SHOWMAP,'shows');
     for(const [k,v] of Object.entries(sh.mijn)) if(nieuwer(v,st.showMijn[k])) st.showMijn[k]=v;
     st.showAnderen=sh.anderen; berekenToewijzing();
+    const li=await leesStemmen(LIJSTMAP,'lijst');
+    for(const [k,v] of Object.entries(li.mijn)) if(nieuwer(v,st.lijstMijn[k])) st.lijstMijn[k]=v;
+    st.lijstAnderen=li.anderen; berekenSelectie();
     if(anders){ vulMappen(); render(!eerste); } else { for(const f of st.fotos) werkKaartBij(f.key); toonVoortgang(); }
     zetStatus('Bijgewerkt '+tijdNu());
   } catch(e){ zetStatus('Fout bij inlezen: '+e.message); }
@@ -640,8 +698,9 @@ async function opslaan(){
 window.addEventListener('beforeunload',e=>{
   if(opslaanTimer){ opslaan(); e.preventDefault(); }
   if(showTimer){ showOpslaan(); e.preventDefault(); }
+  if(lijstTimer){ lijstOpslaan(); e.preventDefault(); }
 });
-document.addEventListener('visibilitychange',()=>{ if(document.hidden){ if(opslaanTimer) opslaan(); if(showTimer) showOpslaan(); } });
+document.addEventListener('visibilitychange',()=>{ if(document.hidden){ if(opslaanTimer) opslaan(); if(showTimer) showOpslaan(); if(lijstTimer) lijstOpslaan(); } });
 
 // ---------- weergave ----------
 function vulMappen(){
@@ -658,13 +717,15 @@ function aantalSuper(key){ return aantal(key,['super']); }
 $('fShow').innerHTML='<option value="">Alle fotoshows</option><option value="geen">In geen fotoshow</option><option value="wel">In een fotoshow</option>'+
   SHOWS.map(sh=>`<option value="${sh.nr}">In show ${sh.nr} ${esc(sh.naam)}</option>`).join('');
 function filter(){
-  const m=$('fMap').value, t=$('fToon').value, fs=$('fShow').value;
+  const m=$('fMap').value, t=$('fToon').value, fs=$('fShow').value, fl=$('fLijst').value;
   let l=st.fotos.filter(f=>{
     if(m && f.map!==m) return false;
     const sh=showVan(f.key);
     if(fs==='geen' && sh) return false;
     if(fs==='wel' && !sh) return false;
     if(+fs && (!sh || sh.show!==+fs)) return false;
+    if(fl==='in' && !inSelectie(f.key)) return false;
+    if(fl==='uit' && inSelectie(f.key)) return false;
     const s=mijnStem(f.key);
     if(t==='open') return !s;
     if(t==='nieuw') return st.nieuw.has(f.key);
@@ -676,7 +737,7 @@ function filter(){
   if($('fSorteer').value==='stemmen') l=l.slice().sort((a,b)=>aantalSuper(b.key)-aantalSuper(a.key) || aantalJa(b.key)-aantalJa(a.key));
   return l;
 }
-['fMap','fToon','fShow','fSorteer'].forEach(id=>$(id).addEventListener('change',()=>{ lsSet(id==='fMap'?'map':id,$(id).value); render(); }));
+['fMap','fToon','fShow','fLijst','fSorteer'].forEach(id=>$(id).addEventListener('change',()=>{ lsSet(id==='fMap'?'map':id,$(id).value); render(); }));
 
 const kaarten=new Map();
 // houdPlek: de foto die bovenaan in beeld staat blijft op dezelfde plek (bij automatisch bijwerken)
@@ -692,10 +753,12 @@ function render(houdPlek){
     k.innerHTML=`<div class="duim">laden…</div><div class="meta" title="${esc(f.pad)}">${esc(f.pad)}</div>
       <div class="knoppen"><button class="s-super" data-s="super">Super</button><button class="s-ja" data-s="ja">Ja</button><button class="s-twijfel" data-s="twijfel">Twijfel</button><button class="s-nee" data-s="nee">Nee</button></div>
       <div class="shows">${showKnoppen('s'+i)}</div>
+      <div class="selrij"><button class="sel" title="Hoort deze foto bij de selectie die overblijft? Iedereen mag dit wijzigen.">+ In de selectie</button></div>
       <div class="anderen"></div>`;
     k.querySelector('.duim').onclick=()=>openLb(i);
     k.querySelectorAll('.knoppen button').forEach(b=>b.onclick=()=>stem(f.key,b.dataset.s));
     koppelShowKnoppen(k.querySelector('.shows'),()=>f.key);
+    k.querySelector('.sel').onclick=()=>zetSelectie(f.key,!inSelectie(f.key));
     frag.appendChild(k); kaarten.set(f.key,k); werkKaartBij(f.key,k);
     if(duimCache.has(f.key)) zetDuim(k,duimCache.get(f.key)); else zichtbaar.observe(k);
   });
@@ -716,6 +779,10 @@ function werkKaartBij(key,k){
   const sh=showVan(key); let lbl=d.querySelector('.inshow');
   if(sh){ if(!lbl){ lbl=document.createElement('span'); lbl.className='inshow'; d.appendChild(lbl); } lbl.textContent=showTekst(sh); }
   else if(lbl) lbl.remove();
+  const sel=inSelectie(key), sb=k.querySelector('.selrij button');
+  sb.classList.toggle('actief',sel); sb.textContent=selTekst(key);
+  const vink=d.querySelector('.insel');
+  if(sel && !vink) d.insertAdjacentHTML('beforeend','<span class="insel" title="In de selectie">✓</span>'); else if(!sel && vink) vink.remove();
   if(st.lbIndex>=0 && st.lijst[st.lbIndex] && st.lijst[st.lbIndex].key===key) lbKnoppen();
 }
 // keuzerondjes "– 1 2 3 4 5" en de knop "laatste foto"; naam = groep, zodat het echte radioknoppen zijn
@@ -743,7 +810,8 @@ function chips(key){
 function toonVoortgang(){
   const totaal=st.fotos.length, klaar=st.fotos.filter(f=>mijnStem(f.key)).length;
   const sup=st.fotos.filter(f=>mijnStem(f.key)==='super').length, ja=st.fotos.filter(f=>mijnStem(f.key)==='ja').length;
-  $('voortgang').textContent=`${klaar} van ${totaal} beoordeeld · ${sup} super · ${ja} ja`;
+  const sel=st.fotos.filter(f=>inSelectie(f.key)).length;
+  $('voortgang').textContent=`${klaar} van ${totaal} beoordeeld · ${sup} super · ${ja} ja · ${sel} in de selectie`;
   toonKpis();
 }
 
@@ -762,10 +830,11 @@ async function maakDuim(key){
   try { const url=await st.bron.duim(f); if(url) duimCache.set(key,url); return url; } catch(e){ return null; }
 }
 function zetDuim(k,url){
-  const d=k.querySelector('.duim'), b=d.querySelector('.nieuw'), l=d.querySelector('.inshow');
+  const d=k.querySelector('.duim'), b=d.querySelector('.nieuw'), l=d.querySelector('.inshow'), v=d.querySelector('.insel');
   if(url){ d.innerHTML=''; const img=new Image(); img.src=url; img.alt=''; d.appendChild(img); } else d.textContent='kan niet laden';
   if(b) d.appendChild(b);
   if(l) d.appendChild(l);
+  if(v) d.appendChild(v);
 }
 
 // ---------- lichtbak ----------
@@ -781,8 +850,9 @@ async function openLb(i){
 function lbKnoppen(){
   const f=st.lijst[st.lbIndex]; const s=f&&mijnStem(f.key);
   document.querySelectorAll('#lichtbak .balk button').forEach(b=>b.classList.toggle('actief',b.dataset.s===s));
-  if(f) werkShowKnoppenBij($('lbShows'),f.key);
+  if(f){ werkShowKnoppenBij($('lbShows'),f.key); $('lbSel').classList.toggle('actief',inSelectie(f.key)); $('lbSel').textContent=selTekst(f.key)+' (K)'; }
 }
+$('lbSel').onclick=()=>{ const f=st.lijst[st.lbIndex]; if(f) zetSelectie(f.key,!inSelectie(f.key)); };
 $('lbShows').innerHTML=showKnoppen('lb');
 koppelShowKnoppen($('lbShows'),()=>{ const f=st.lijst[st.lbIndex]; return f&&f.key; });
 function sluitLb(){
@@ -813,6 +883,7 @@ document.addEventListener('keydown',e=>{
   else if(k==='t') lbStem('twijfel');
   else if(k==='n') lbStem('nee');
   else if(/^[0-5]$/.test(k)){ const f=st.lijst[st.lbIndex]; if(f) zetShow(f.key,+k,false); }
+  else if(k==='k') $('lbSel').click();
   else if(k==='l'){ const f=st.lijst[st.lbIndex], sh=f&&showVan(f.key); if(sh) zetShow(f.key,sh.show,!sh.laatste); }
   else return;
   e.preventDefault();
@@ -840,7 +911,7 @@ function zetStatus(t){ $('status').textContent=t; }
     if(WEBADRES) $('webadres').innerHTML=` <a href="${esc(WEBADRES)}">${esc(WEBADRES)}</a>`;
   }
   st.naam=lsGet('naam');
-  for(const id of ['fToon','fShow','fSorteer']){ const v=lsGet(id); if(v) $(id).value=v; }
+  for(const id of ['fToon','fShow','fLijst','fSorteer']){ const v=lsGet(id); if(v) $(id).value=v; }
   if(kanMap && await idbGet('dir')) $('verder').classList.remove('verborgen');
   if(kanDropbox){
     try {
